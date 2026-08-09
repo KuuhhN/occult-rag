@@ -46,7 +46,7 @@ async def _retrieve_for_card(card: dict) -> list:
 
 
 
-async def _generate_reading(cards_with_sources: list, question: str) -> list[dict]:
+async def _generate_reading(cards_with_sources: list, question: str) -> list[str]:
     """逐张生成解读（每张卡独立 LLM 调用）
 
     之前一次调用生成全部解读，LLM 偶发只返回部分卡牌导致解读缺失
@@ -61,7 +61,7 @@ async def _generate_reading(cards_with_sources: list, question: str) -> list[dic
         temperature=0.7,
     )
     q_line = f"\n问卜问题：{question}" if question.strip() else ""
-    readings: list[dict] = []
+    readings: list[str] = []
     for item in cards_with_sources:
         card, blocks = item["card"], item["blocks"]
         orientation = "逆位" if card["reversed"] else "正位"
@@ -71,8 +71,7 @@ async def _generate_reading(cards_with_sources: list, question: str) -> list[dic
         prompt = (
             "你是神秘学塔罗解读师。基于下面检索到的资料，为这张牌生成一段"
             "60-100 字的中文解读（贴合牌的正逆位含义，若有问卜问题需结合问题）。"
-            "直接输出 JSON 对象，格式：{\"card_id\": 0, "
-            "\"interpretation\": \"...\"}，不要其他文字。\n\n"
+            "直接输出 JSON 对象，格式：{\"interpretation\": \"...\"}，不要其他文字。\n\n"
             f"【{card['name_cn']}（{card['name_en']}）{orientation}】\n"
             f"检索到的资料：\n{snippets or '（知识库暂无直接相关内容，请基于塔罗学常识谨慎解读并标注）'}"
             f"{q_line}"
@@ -86,18 +85,15 @@ async def _generate_reading(cards_with_sources: list, question: str) -> list[dic
             import json as _json
             data = _json.loads(text)
             reading = data if isinstance(data, dict) else {}
-            readings.append({
-                "card_id": reading.get("card_id", card["id"]),
-                "interpretation": reading.get("interpretation", ""),
-            })
+            readings.append(reading.get("interpretation", ""))
         except Exception:
             logger.exception("单张解读生成失败: %s", card["name_cn"])
-            readings.append({"card_id": card["id"], "interpretation": ""})
+            readings.append("")
     return readings
 
 
 async def _generate_overall_reading(
-    cards_with_sources: list, readings: list[dict], question: str
+    cards_with_sources: list, readings: list[str], question: str
 ) -> str:
     """生成综合解读（三张以上牌时）：把各牌解读汇总成整体趋势与建议
 
@@ -117,7 +113,7 @@ async def _generate_overall_reading(
     for i, item in enumerate(cards_with_sources):
         card = item["card"]
         orientation = "逆位" if card["reversed"] else "正位"
-        interp = readings[i].get("interpretation", "") if i < len(readings) else ""
+        interp = readings[i] if i < len(readings) else ""
         summary.append(
             f"{i + 1}. {card['name_cn']}（{orientation}）：{interp}"
         )
@@ -161,17 +157,9 @@ async def draw(request: DrawRequest):
     result_cards = []
     for i, item in enumerate(cards_with_sources):
         card = item["card"]
-        # 匹配策略：card_id → 牌名 → 按序 fallback（LLM 输出格式不稳定）
-        reading = None
-        for r in readings:
-            if str(r.get("card_id")) == str(card["id"]):
-                reading = r
-                break
-            if r.get("name_cn") == card["name_cn"] or r.get("name") == card["name_cn"]:
-                reading = r
-                break
-        if reading is None and i < len(readings):
-            reading = readings[i]
+        # 逐张生成的顺序即对应关系（readings[i] 是第 i 张卡的解读），
+        # 不依赖 LLM 输出 card_id（LLM 幻觉会导致解读错位——修复过）
+        interpretation = readings[i] if i < len(readings) else ""
         result_cards.append({
             "card_id": card["id"],
             "name_cn": card["name_cn"],
@@ -179,7 +167,7 @@ async def draw(request: DrawRequest):
             "arcana": card.get("arcana", "major"),
             "suit": card.get("suit", ""),
             "reversed": card["reversed"],
-            "interpretation": (reading or {}).get("interpretation", ""),
+            "interpretation": interpretation,
         })
     return {
         "cards": result_cards,
