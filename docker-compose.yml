@@ -1,0 +1,72 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: occult-rag-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: occult_rag
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: occult-rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 启动后自动拉取模型（只运行一次）
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: occult-rag-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Pulling embedding model..."
+        ollama pull nomic-embed-text --url http://ollama:11434
+        echo "Pulling LLM..."
+        ollama pull qwen2.5:7b --url http://ollama:11434
+        echo "Models ready."
+    environment:
+      - OLLAMA_HOST=ollama:11434
+
+  backend:
+    build: ./backend
+    container_name: occult-rag-backend
+    environment:
+      DATABASE_URL: "postgresql+psycopg://postgres:postgres@db:5432/occult_rag"
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      EMBEDDING_MODEL: "nomic-embed-text"
+      LLM_MODEL: "qwen2.5:7b"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  ollama_data:

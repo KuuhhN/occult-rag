@@ -1,0 +1,1464 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== Design Tokens（Bexa：HSL 系统、单一 accent、无纯黑）===== */
+:root {
+  /* 夜空色系：冷蓝黑 surface（神秘学氛围），琥珀金点缀 */
+  --surface-0: hsl(225 30% 5%);
+  --surface-1: hsl(225 25% 8%);
+  --surface-2: hsl(225 22% 12%);
+  --surface-3: hsl(225 20% 16%);
+  --accent:        hsl(43 60% 55%);   /* 琥珀金（神秘学主题，饱和度≤75%） */
+  --accent-hover:  hsl(43 65% 62%);
+  --accent-dim:    hsl(43 60% 55% / 0.12);
+  --accent-border: hsl(43 60% 55% / 0.3);
+  --text-primary:   hsl(40 30% 93%);
+  --text-secondary: hsl(42 15% 70%);
+  --text-muted:     hsl(42 10% 50%);
+  --border:        hsl(225 15% 18%);
+  --border-strong: hsl(225 12% 28%);
+  --error: hsl(0 60% 55%);
+  --success: hsl(150 45% 45%);
+  --font-display: "Cormorant Garamond", "Noto Serif SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6875;
+}
+
+/* 夜空星点层（ambient 背景，fixed 不占布局，pointer-events 穿透） */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1px 1px at 12% 22%, hsla(43 80% 80% / 0.5) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 32% 68%, hsla(43 80% 80% / 0.35) 0, transparent 100%),
+    radial-gradient(1px 1px at 55% 35%, hsla(43 80% 80% / 0.4) 0, transparent 100%),
+    radial-gradient(1.2px 1.2px at 72% 80%, hsla(43 80% 80% / 0.3) 0, transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, hsla(43 80% 80% / 0.45) 0, transparent 100%),
+    radial-gradient(1.4px 1.4px at 92% 55%, hsla(43 80% 80% / 0.25) 0, transparent 100%),
+    radial-gradient(1px 1px at 45% 90%, hsla(43 80% 80% / 0.35) 0, transparent 100%),
+    radial-gradient(1.1px 1.1px at 8% 85%, hsla(43 80% 80% / 0.3) 0, transparent 100%),
+    radial-gradient(ellipse 90% 60% at 50% 0%, hsl(260 35% 12% / 0.5), transparent 100%),
+    radial-gradient(ellipse 70% 50% at 85% 100%, hsl(200 30% 10% / 0.4), transparent 100%);
+}
+
+/* 标题走 display 字体（编辑气质）；中文显式用 Noto Serif SC（next/font 已加载） */
+h1, h2, h3, .header h1, .brand-name, .empty-state .title {
+  font-family: var(--font-display), var(--font-serif-sc), serif;
+  letter-spacing: -0.01em;
+}
+
+/* 数字表格对齐（统计/块数） */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 可访问性：尊重系统减弱动效 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;  /* 禁掉无限动画 */
+  }
+}
+
+/* 键盘焦点环（WCAG） */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 主容器 */
+.main-container {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 标题 */
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: #c9a84c;
+}
+.header p {
+  font-size: 0.875rem;
+  color: #8a8070;
+  margin-top: 0.25rem;
+}
+
+/* 新建对话按钮 */
+.new-conv-btn {
+  margin-top: 0.75rem;
+  background: transparent;
+  border: 1px solid #2a2520;
+  color: #8a8070;
+  border-radius: 9999px;
+  padding: 0.4rem 1.25rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.new-conv-btn:hover:not(:disabled) {
+  border-color: #c9a84c;
+  color: #c9a84c;
+}
+.new-conv-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 消息区域 */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
+}
+.empty-state {
+  text-align: center;
+  color: #6a6050;
+  margin-top: 5rem;
+}
+.empty-state .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.empty-state .title {
+  font-size: 1.125rem;
+}
+.empty-state .subtitle {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* 消息气泡 */
+.message-row {
+  display: flex;
+  margin-bottom: 1rem;
+}
+.message-row.user {
+  justify-content: flex-end;
+}
+.message-row.assistant {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 85%;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+.message-bubble.user {
+  background: #2a2520;
+  color: #e0d8c8;
+  font-size: 0.875rem;
+}
+.message-bubble.assistant {
+  background: #1a1815;
+  color: #d8d0c0;
+  border: 1px solid #2a2520;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.message-bubble.assistant h1,
+.message-bubble.assistant h2,
+.message-bubble.assistant h3 {
+  color: #c9a84c;
+  margin: 0.5rem 0;
+}
+.message-bubble.assistant p {
+  margin: 0.25rem 0;
+}
+.message-bubble.assistant ul,
+.message-bubble.assistant ol {
+  padding-left: 1.25rem;
+}
+.message-bubble.assistant code {
+  background: #2a2520;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+}
+.message-bubble.assistant pre {
+  background: #2a2520;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+/* 来源引用 */
+.sources {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #2a2520;
+}
+.sources-label {
+  font-size: 0.75rem;
+  color: #6a6050;
+  margin-bottom: 0.25rem;
+}
+.source-item {
+  font-size: 0.75rem;
+  color: #8a7060;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 加载动画 */
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: #c9a84c;
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+}
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes bounce {
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* 输入区域 */
+.input-form {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+.input-form input {
+  flex: 1;
+  background: #1a1815;
+  border: 1px solid #2a2520;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #e0d8c8;
+  outline: none;
+}
+.input-form input::placeholder {
+  color: #6a6050;
+}
+.input-form input:focus {
+  border-color: #c9a84c;
+}
+.input-form button {
+  background: #c9a84c;
+  color: #0f0f0f;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.input-form button:hover:not(:disabled) {
+  background: #d4b45c;
+}
+.input-form button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== Phase 2：侧边栏 / 引用卡片 / chips ===== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #141210;
+  border-right: 1px solid #2a2620;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #2a2620;
+}
+
+.sidebar-btn {
+  width: 100%;
+  background: #c9a84c;
+  color: #0f0f0f;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sidebar-btn:hover {
+  background: #d4b45c;
+}
+
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.conversation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  transition: background 0.15s;
+}
+.conversation-item:hover {
+  background: #1e1b17;
+}
+.conversation-item.active {
+  background: #2a2418;
+  border-left: 3px solid #c9a84c;
+}
+
+.conversation-title {
+  font-size: 0.8rem;
+  color: #d0c8b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.conversation-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.conversation-item:hover .conversation-actions {
+  opacity: 1;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #8a8272;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.25rem;
+}
+.icon-btn:hover {
+  color: #d0c8b8;
+  background: #332e26;
+}
+.icon-btn.danger:hover {
+  color: #e07a5f;
+}
+
+.sidebar-empty {
+  color: #6a6050;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.sidebar-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #2a2620;
+}
+
+.badge {
+  font-size: 0.7rem;
+  color: #8a8272;
+  background: #1e1b17;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-toggle {
+  background: transparent;
+  border: 1px solid #2a2620;
+  color: #8a8272;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.sidebar-toggle:hover {
+  color: #d0c8b8;
+  border-color: #c9a84c;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 来源引用卡片 */
+.source-card {
+  background: #1a1713;
+  border: 1px solid #2a2620;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.source-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.source-name {
+  color: #c9a84c;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.source-type {
+  background: #2a2418;
+  color: #d0b878;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.68rem;
+}
+
+.source-score {
+  color: #6a6050;
+  font-size: 0.68rem;
+  margin-left: auto;
+}
+
+.source-content {
+  color: #8a8272;
+  font-size: 0.72rem;
+  margin-top: 0.35rem;
+  line-height: 1.5;
+}
+
+/* 建议问题 chips */
+.followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.followup-chip {
+  background: transparent;
+  border: 1px solid #3a3528;
+  color: #d0b878;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.followup-chip:hover {
+  background: #2a2418;
+  border-color: #c9a84c;
+}
+
+/* 停止按钮 */
+.stop-btn {
+  background: #7a3a2a !important;
+  color: #f0e0d0 !important;
+}
+.stop-btn:hover {
+  background: #8a4a35 !important;
+}
+
+/* ===== Phase 3：知识库管理页 ===== */
+.kb-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.kb-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.kb-back {
+  color: #8a8272;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.kb-back:hover {
+  color: #c9a84c;
+}
+.kb-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+.kb-summary {
+  color: #6a6050;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: #141210;
+  border: 1px solid #2a2620;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: center;
+}
+.stat-num {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #c9a84c;
+}
+.stat-label {
+  color: #8a8272;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.section-title {
+  color: #8a8272;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.type-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.type-bar-label {
+  width: 80px;
+  font-size: 0.75rem;
+  color: #d0c8b8;
+  text-align: right;
+}
+.type-bar-track {
+  flex: 1;
+  height: 12px;
+  background: #1e1b17;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.type-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+.type-bar-count {
+  width: 70px;
+  font-size: 0.75rem;
+  color: #6a6050;
+}
+
+.upload-zone {
+  border: 2px dashed #3a3528;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  transition: all 0.2s;
+}
+.upload-zone.dragging {
+  border-color: #c9a84c;
+  background: #1e1b17;
+}
+.upload-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.upload-inner p {
+  color: #8a8272;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+.upload-btn {
+  display: inline-block;
+  background: #c9a84c;
+  color: #0f0f0f;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-weight: bold;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.upload-btn:hover {
+  background: #d4b45c;
+}
+.upload-status {
+  color: #7a9e7e;
+  font-size: 0.8rem;
+}
+
+.kb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.kb-search {
+  flex: 1;
+  background: #141210;
+  border: 1px solid #2a2620;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  color: #e0d8c8;
+  font-size: 0.8rem;
+  outline: none;
+}
+.kb-search:focus {
+  border-color: #c9a84c;
+}
+.kb-filter {
+  background: #141210;
+  border: 1px solid #2a2620;
+  color: #d0c8b8;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+}
+.kb-total {
+  color: #6a6050;
+  font-size: 0.75rem;
+}
+
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #1e1b17;
+}
+.doc-row:hover {
+  background: #141210;
+}
+.doc-name {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #d0c8b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-type {
+  font-size: 0.68rem;
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  flex-shrink: 0;
+}
+.doc-cat {
+  font-size: 0.65rem;
+  color: #8a8272;
+  border: 1px solid #3a3528;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  flex-shrink: 0;
+}
+.doc-chunks {
+  font-size: 0.7rem;
+  color: #6a6050;
+  flex-shrink: 0;
+}
+
+/* ===== Phase 4：检索可视化 ===== */
+.retrieval-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.25rem;
+  flex-wrap: wrap;
+}
+.retrieval-type-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+.retrieval-type-badge.overview {
+  background: #2a2418;
+  color: #d0b878;
+}
+.retrieval-type-badge.detail {
+  background: #182a24;
+  color: #78d0b8;
+}
+.retrieval-type-badge.general {
+  background: #24242a;
+  color: #b8b8d0;
+}
+.retrieval-desc {
+  font-size: 0.72rem;
+  color: #6a6050;
+}
+
+.sources-label {
+  color: #8a8272;
+  font-size: 0.75rem;
+  margin: 0.5rem 0 0.25rem;
+  user-select: none;
+}
+.sources-label:hover {
+  color: #c9a84c;
+}
+
+.score-bar {
+  height: 4px;
+  background: #1e1b17;
+  border-radius: 2px;
+  margin-top: 0.4rem;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7a5a2a, #c9a84c);
+  border-radius: 2px;
+}
+
+/* ===== Phase 5：设置页 ===== */
+.settings-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.settings-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.settings-card {
+  background: #141210;
+  border: 1px solid #2a2620;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.settings-card h2 {
+  font-size: 1rem;
+  color: #c9a84c;
+  margin: 0 0 1rem;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #1e1b17;
+}
+.setting-row:last-of-type {
+  border-bottom: none;
+}
+.setting-name {
+  font-size: 0.85rem;
+  color: #d0c8b8;
+  font-weight: 600;
+}
+.setting-desc {
+  font-size: 0.72rem;
+  color: #6a6050;
+  margin-top: 0.2rem;
+}
+.setting-input {
+  width: 70px;
+  background: #1e1b17;
+  border: 1px solid #2a2620;
+  color: #e0d8c8;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.save-btn {
+  margin-top: 1rem;
+  background: #c9a84c;
+  color: #0f0f0f;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.save-btn:hover {
+  background: #d4b45c;
+}
+
+/* 开关 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #2a2620;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #8a8272;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.switch input:checked + .slider {
+  background: #c9a84c;
+}
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+  background: #0f0f0f;
+}
+
+/* 头部导航链接 */
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.nav-link {
+  color: #8a8272;
+  text-decoration: none;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #2a2620;
+  border-radius: 0.4rem;
+  transition: all 0.2s;
+}
+.nav-link:hover {
+  color: #c9a84c;
+  border-color: #c9a84c;
+}
+
+/* ===== Bexa 交互增强层 ===== */
+/* 统一按压反馈（transform 动效，只动 transform/opacity） */
+button, .clickable {
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 200ms ease,
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+button:active:not(:disabled), .clickable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 会话项 hover 提升 */
+.conversation-item {
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+.conversation-item:hover {
+  background: var(--surface-2);
+}
+
+/* 消息卡片 hover 微边框 */
+.message-bubble.assistant {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.message-bubble.assistant:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 2px 16px -6px var(--accent-dim);
+}
+
+/* 引用卡片 hover 提升 */
+.source-card {
+  transition: background-color 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+.source-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-1px);
+}
+
+/* 相似度条：宽度动画（transform 代替 width） */
+.score-fill {
+  transform-origin: left;
+  animation: fill-in 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fill-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* 打字指示点（隔离在 leaf，避免父级重渲染） */
+.loading-dots span {
+  animation: dot-bounce 1.2s infinite ease-in-out;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dot-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+
+/* 数字统计：tabular-nums（对齐） */
+.stat-num, .badge {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 神秘学强化层 ===== */
+/* 标题：中文衬线加粗 + 琥珀金 + 装饰分隔 */
+.header h1 {
+  font-family: var(--font-display), var(--font-serif-sc), serif;
+  font-weight: 700;
+  font-size: 2.25rem;
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, hsl(43 70% 72%), hsl(43 55% 45%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent);
+}
+
+/* ✦ 装饰分隔（golden divider，手稿气质） */
+.occult-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0.9rem auto 0.4rem;
+  color: var(--accent);
+  opacity: 0.85;
+  user-select: none;
+}
+.occult-divider::before,
+.occult-divider::after {
+  content: "";
+  height: 1px;
+  width: 3.5rem;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+}
+.occult-divider span {
+  font-size: 0.8rem;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+}
+
+/* 主按钮：琥珀金渐变 + 内发光 */
+.sidebar-btn.primary, .new-conv-btn {
+  background: linear-gradient(180deg, hsl(43 60% 52%), hsl(43 55% 42%));
+  color: hsl(40 30% 8%);
+  border: 1px solid hsl(43 65% 60% / 0.5);
+  box-shadow: inset 0 1px 0 hsl(43 80% 75% / 0.4), 0 2px 12px -4px hsl(43 60% 45% / 0.5);
+  font-weight: 600;
+}
+.sidebar-btn.primary:hover:not(:disabled), .new-conv-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(43 65% 60%), hsl(43 60% 48%));
+  border-color: hsl(43 70% 65% / 0.7);
+}
+
+/* 玻璃拟态卡片（Bexa glass-card：内折射 + 扩散阴影） */
+.glass-card {
+  background: hsl(225 25% 10% / 0.72);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid hsl(43 60% 55% / 0.16);
+  box-shadow:
+    inset 0 1px 0 hsl(43 60% 70% / 0.08),
+    0 20px 40px hsl(225 30% 3% / 0.5);
+}
+
+/* 输入框聚焦：琥珀金内发光（替代浏览器蓝环）——对齐实际 DOM 类名 */
+.input-form input:focus, .setting-input:focus, .kb-search:focus {
+  outline: none;
+  border-color: var(--accent-border) !important;
+  box-shadow: 0 0 0 3px var(--accent-dim), inset 0 1px 0 hsl(43 60% 70% / 0.06);
+}
+
+/* ===== 主题滚动条（暗色细条 + 琥珀金 hover，替代默认白条）===== */
+* {
+  scrollbar-width: thin;                 /* Firefox：细滚动条 */
+  scrollbar-color: var(--border-strong) transparent;  /* Firefox：thumb/track */
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(225 15% 22%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;          /* 内缩 2px，观感更轻 */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ===== 塔罗抽牌页 ===== */
+.tarot-page {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 100dvh;
+}
+.tarot-main { display: flex; flex-direction: column; gap: 1.5rem; }
+.tarot-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+}
+.tarot-count { display: flex; align-items: center; gap: 0.5rem; }
+.tarot-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+.tarot-count-btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: 9999px;
+  padding: 0.35rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.tarot-count-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-weight: 600;
+}
+.tarot-question { flex: 1; min-width: 12rem; }
+.tarot-draw-btn { border-radius: 0.625rem; padding: 0.5rem 1.5rem; }
+.tarot-error { color: var(--error); font-size: 0.875rem; }
+
+/* 洗牌动画（星元素翻转，只动 transform/opacity） */
+.tarot-loading {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 3rem 0;
+}
+/* 洗牌动画牌背：同样提亮 + 外投影（与翻牌卡背视觉一致） */
+.card-back {
+  width: 6rem;
+  height: 9.4rem;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(43 60% 55% / 0.6);
+  background:
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      hsl(43 60% 55% / 0.12) 0deg 5deg,
+      transparent 5deg 10deg
+    ),
+    radial-gradient(circle at 50% 45%, hsl(225 22% 26%), hsl(225 28% 13%) 78%);
+  box-shadow:
+    inset 0 0 0 4px hsl(225 25% 10%),
+    inset 0 0 0 5px hsl(43 60% 55% / 0.45),
+    0 12px 30px -8px hsl(225 30% 3% / 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--accent);
+  animation: card-float 1.6s infinite ease-in-out;
+}
+.card-back.delay-1 { animation-delay: 0.2s; }
+.card-back.delay-2 { animation-delay: 0.4s; }
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* 牌面卡片 */
+.tarot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.25rem;
+}
+.tarot-grid.single { grid-template-columns: 1fr; max-width: 26rem; margin: 0 auto; }
+.tarot-card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  animation: card-in 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tarot-card.reversed { border-color: hsl(330 40% 45% / 0.3); }
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tarot-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.tarot-card-no {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.tarot-orientation {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+}
+.tarot-orientation.rev { color: hsl(330 60% 70%); border-color: hsl(330 40% 45% / 0.4); }
+.tarot-card-name {
+  font-family: var(--font-display), var(--font-serif-sc), serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.1rem;
+}
+.tarot-card-en { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.tarot-card-read { color: var(--text-primary); font-size: 0.95rem; line-height: 1.75; }
+
+.tarot-question-line { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+.tarot-sources {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+.tarot-sources summary { cursor: pointer; color: var(--text-secondary); }
+.tarot-sources ul { list-style: none; margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.tarot-sources li { display: flex; gap: 0.6rem; align-items: center; color: var(--text-secondary); }
+.tarot-sources .source-score { color: var(--accent); font-variant-numeric: tabular-nums; }
+.tarot-sources .source-type {
+  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  color: var(--text-muted);
+}
+
+/* BM25 命中标签（混合检索独有块） */
+.bm25-tag {
+  color: hsl(160 50% 60%);
+  border: 1px solid hsl(160 40% 40% / 0.4);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+}
+
+/* ===== 塔罗 3D 翻牌（v0.4.1）===== */
+/* 入场容器：perspective + stagger 浮现 */
+.tarot-flip-wrap {
+  perspective: 900px;
+  animation: flip-enter 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+@keyframes flip-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 翻转体：初始卡背朝上（rotateY 180），flipped 类翻开显示牌面（0deg） */
+.tarot-flip {
+  position: relative;
+  width: 12rem;
+  height: 18.75rem;
+  transform-style: preserve-3d;
+  transform: rotateY(180deg);
+  transition: transform 700ms cubic-bezier(0.34, 1.2, 0.4, 1);
+  cursor: pointer;
+}
+.tarot-flip.flipped {
+  transform: rotateY(0deg);
+}
+/* 点击 toggle 已覆盖翻回卡背需求；不设 hover 自动翻回
+   （避免点击揭示后鼠标悬停立即翻回卡背的冲突） */
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* 牌面：默认正面（容器 0deg 时可见） */
+.flip-front {
+  transform: rotateY(0deg);
+}
+/* 卡背：预旋转 180（容器 180deg 时其正面朝观察者） */
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* 牌背：JOJO 风格（CSS 绘制，放射纹理 + 中央符文 + 四角星）
+   底色比夜空背景亮 2-3 档 + 外投影，保证与背景明显分离 */
+.flip-back {
+  background:
+    radial-gradient(circle at 50% 45%, hsl(43 40% 26%) 0 12%, transparent 13%),
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      hsl(43 60% 55% / 0.14) 0deg 4deg,
+      transparent 4deg 8deg
+    ),
+    radial-gradient(circle at 50% 45%, hsl(225 22% 26%), hsl(225 28% 13%) 78%);
+  border: 1px solid hsl(43 60% 55% / 0.65);
+  box-shadow:
+    inset 0 0 0 5px hsl(225 25% 10%),
+    inset 0 0 0 6px hsl(43 60% 55% / 0.5),
+    inset 0 0 0 9px hsl(225 25% 10%),
+    inset 0 0 0 10px hsl(43 60% 55% / 0.3),
+    0 12px 32px -8px hsl(225 30% 3% / 0.9),
+    0 0 0 1px hsl(43 60% 55% / 0.35);
+}
+.flip-back-design {
+  position: relative;
+  font-size: 3.2rem;
+  color: var(--accent);
+  text-shadow: 0 0 16px hsl(43 60% 55% / 0.55);
+}
+/* 四角星点缀（JOJO 风格对称装饰） */
+.flip-back::before,
+.flip-back::after {
+  content: "✦";
+  position: absolute;
+  font-size: 0.8rem;
+  color: var(--accent);
+  opacity: 0.7;
+}
+.flip-back::before { top: 0.8rem; left: 0.8rem; }
+.flip-back::after  { bottom: 0.8rem; right: 0.8rem; }
+
+/* 牌面：图或文字兜底 */
+.flip-front {
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 10px 28px -10px hsl(225 30% 3% / 0.9);
+  padding: 0.5rem;
+}
+.tarot-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.3rem;
+}
+/* 逆位：整牌横置 180 度 */
+.tarot-flip.is-reversed .tarot-card-img,
+.tarot-flip.is-reversed .tarot-card-text-fallback {
+  transform: rotate(180deg);
+}
+
+.tarot-card-text-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+/* 解读文字在牌下（不在牌面内）——适配大卡牌宽度 */
+.tarot-card-read {
+  max-width: 20rem;
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.tarot-grid.single .tarot-card-read { max-width: 17rem; }
+
+/* 正逆位角标（叠在牌面图上） */
+.flip-front .tarot-orientation {
+  position: absolute;
+  bottom: 0.9rem;
+  right: 0.9rem;
+  background: hsl(225 30% 6% / 0.8);
+  backdrop-filter: blur(4px);
+  font-size: 0.7rem;
+}
+.flip-front .tarot-card-no {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.9rem;
+  background: hsl(225 30% 6% / 0.8);
+  backdrop-filter: blur(4px);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* 旧文字卡片样式标记为 legacy（保留兼容） */
+.tarot-card { /* legacy：仅无图回退时局部使用 */ }
+
+/* ===== JOJO 大阿卡纳专属卡背（紫色调 + JOJO 标记，与小阿卡纳 RWS 卡背区分）===== */
+.flip-back.jojo-back {
+  background:
+    radial-gradient(circle at 50% 45%, hsl(270 45% 30%) 0 12%, transparent 13%),
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      hsl(43 70% 60% / 0.16) 0deg 4deg,
+      transparent 4deg 8deg
+    ),
+    radial-gradient(circle at 50% 45%, hsl(265 30% 24%), hsl(265 35% 12%) 78%);
+  border-color: hsl(270 55% 60% / 0.65);
+  box-shadow:
+    inset 0 0 0 5px hsl(265 35% 10%),
+    inset 0 0 0 6px hsl(270 55% 60% / 0.5),
+    inset 0 0 0 9px hsl(265 35% 10%),
+    inset 0 0 0 10px hsl(270 55% 60% / 0.28),
+    0 12px 32px -8px hsl(225 30% 3% / 0.9);
+}
+.flip-back.jojo-back .flip-back-design {
+  font-family: var(--font-display), serif;
+  font-size: 4.2rem;
+  font-weight: 700;
+  color: hsl(270 70% 75%);
+  text-shadow: 0 0 18px hsl(270 70% 55% / 0.6), 0 2px 0 hsl(43 70% 60% / 0.4);
+}
+.flip-back-tag {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-display), serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  color: hsl(43 70% 65%);
+  opacity: 0.85;
+}
+
+/* 解读：揭示卡面时淡入（初始隐藏） */
+.tarot-card-read {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 500ms ease 250ms, transform 500ms ease 250ms;
+}
+.tarot-card-read.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== 解读卡片化 + 综合解读（v0.4.2）===== */
+/* 单牌解读：玻璃卡片边框 */
+.tarot-card-read {
+  max-width: 21rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 0.75rem;
+  background: hsl(225 25% 10% / 0.55);
+  backdrop-filter: blur(8px);
+  font-size: 0.88rem;
+  line-height: 1.75;
+  text-align: left;
+  color: var(--text-secondary);
+}
+.tarot-grid.single .tarot-card-read { max-width: 18rem; }
+
+/* 综合解读：牌阵下方的整体卡片 */
+.tarot-overall {
+  padding: 1.4rem 1.6rem;
+  border-radius: 1rem;
+  border-color: hsl(43 60% 55% / 0.4);
+}
+.tarot-overall-title {
+  font-family: var(--font-display), var(--font-serif-sc), serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+}
+.tarot-overall-text {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
