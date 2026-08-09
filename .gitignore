@@ -14,3 +14,6 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+
+# 工具缓存
+.codegraph/
