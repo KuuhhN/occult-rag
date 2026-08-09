@@ -1,0 +1,23 @@
+NOTICE
+======
+
+本项目（occult-rag）包含第三方素材，版权声明如下：
+
+## 塔罗牌面图
+
+### JOJO 的奇妙冒险 第三季（星尘斗士）大阿卡纳原画（22 张）
+- 位置：`frontend/public/images/tarot/major/`
+- 来源：jojowiki.com 粉丝维基（Fandom），下载脚本 `scripts/fetch_jojo_tarot.py`
+- 版权：© 荒木飞吕彦（Hirohiko Araki）/ 集英社（Shueisha）
+- 用途：本项目仅用于个人学习与技术演示（非商业），未获授权
+- 权利方要求移除：请通过 GitHub Issues 联系，将立即删除相关图片
+
+### Rider-Waite 1909 小阿卡纳牌面（56 张）
+- 位置：`frontend/public/images/tarot/minor/`
+- 版权：Public Domain（1909 年首次出版，已进入公有领域）
+- 来源：GitHub lalesleon13-hash/Tarot，下载脚本 `scripts/fetch_tarot_assets.py`
+
+## 其他
+- 项目代码：MIT License（见 LICENSE）
+- 知识库资料：来源于公开出版的经典著作，由作者整理为精排版用于个人学习，
+  不随本仓库分发原始 PDF

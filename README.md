@@ -5,6 +5,11 @@
 **技术栈：** FastAPI · LangChain · PostgreSQL/pgvector · Ollama · Next.js 15
 **版本：** v0.4.2
 
+> ⚠️ **开发状态：持续迭代中的个人项目**
+> 知识库目前为**半成品**——已收录炼金术/塔罗/卡巴拉基础/占星等 84+ 本精排版，
+> 但**卡巴拉进阶、维卡（Wicca）、符号学**等方向资料仍待补全（受限于 OCR 免费额度，
+> 资料由作者逐批整理入库）。代码与架构已稳定，欢迎体验与反馈，资料会持续扩充。
+
 ---
 
 ## ✨ 功能亮点
@@ -58,12 +63,13 @@ docker compose up backend
 # 健康检查：http://localhost:8000/health
 ```
 
-### 3. 导入知识库（可选，自带示例数据）
+### 3. 导入知识库（可选，无资料也能体验塔罗）
 
 ```bash
 pip install -r backend/requirements.txt
 python scripts/import_notes.py <你的知识库目录>
-# 无知识库也能跑（塔罗功能使用内置 78 张牌数据）
+# 无知识库也能跑：塔罗功能使用内置 78 张牌数据，开箱可用；
+# 知识问答需要导入资料（RAG 的知识来自知识库，作者持续补充中）
 ```
 
 ### 4. 启动前端
@@ -120,10 +126,18 @@ occult-rag/
 
 ### 牌面图版权
 
-牌面图**不提交 Git 仓库**（`.gitignore` 排除）：
-- **默认**：Rider-Waite 1909 公版（public domain），`scripts/fetch_tarot_assets.py` 可一键下载 78 张
-- **可替换**：`frontend/public/images/tarot/major/major-XX.jpg` 覆盖为任意图（如 JOJO 第三季原画），文件名不变则前端零改动
-- **注意**：动漫/商业美术（如《JOJO 的奇妙冒险》）请勿提交公开仓库（侵权风险），本地演示可自行替换
+> **⭐ 彩蛋声明**：本仓库包含 **JOJO 的奇妙冒险 第三季（星尘斗士）塔罗牌原画**
+> 22 张大阿卡纳（来自 jojowiki.com 粉丝维基），作为本项目特色彩蛋展示。
+> **版权归原作者（荒木飞吕彦/集英社）所有**，本项目仅用于**个人学习、技术演示与非商业展示**，未获任何授权。
+> 若您是版权方并认为本项目使用不当，请通过 GitHub Issues 联系，我们将立即移除相关图片。
+> 作者深爱这部作品——这是献给 JOJO 的小小致敬。
+
+- **JOJO 大阿卡纳**（22 张，彩蛋）：`frontend/public/images/tarot/major/`，
+  来源 jojowiki.com，下载脚本 `scripts/fetch_jojo_tarot.py`
+- **小阿卡纳**（56 张）：Rider-Waite 1909 **公版**（public domain），
+  `scripts/fetch_tarot_assets.py` 可一键下载
+- **可替换**：覆盖 `major/major-XX.jpg` 为任意图（文件名不变前端零改动）；
+  不希望包含 JOJO 图的部署可删除 `major/` 目录（自动回退文字牌面）
 
 ---
 

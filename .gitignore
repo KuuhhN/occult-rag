@@ -10,10 +10,6 @@ __pycache__/
 .env.local
 *.env
 
-# ---- 塔罗牌面图（版权策略：图片不入库，本地演示用）----
-# RWS 1909 公版可替换为本地文件；JOJO 原画等动漫/商业美术严禁提交
-frontend/public/images/tarot/
-
 # ---- 本地数据与日志 ----
 *.log
 .DS_Store
