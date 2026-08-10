@@ -28,7 +28,6 @@ interface Message {
   followups?: string[];
   questionType?: string;
   typeDescription?: string;
-  images?: { id: string; file: string; book_title: string; page: number; summary?: string }[];
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -288,24 +287,6 @@ export default function Home() {
             } catch {
               // 解析失败忽略
             }
-          } else if (lastEvent === "images") {
-            // 检索自动附带的炼金图像
-            try {
-              const json = JSON.parse(data);
-              if (Array.isArray(json)) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  if (!updated[assistantIdx]) {
-                    updated.push({ role: "assistant", content: "", images: json as any[] });
-                  } else {
-                    updated[assistantIdx] = { ...updated[assistantIdx], images: json as any[] };
-                  }
-                  return updated;
-                });
-              }
-            } catch {
-              // 解析失败忽略
-            }
           } else if (lastEvent === "token") {
             // 纯文本 token，直接追加（数字 token 如 "5" 不能被 JSON.parse 吞掉）
             fullAnswer += data;
@@ -466,7 +447,7 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* 来源引用卡片 */}
+                    {/* 来源引用卡片（默认折叠，点击展开） */}
                     {msg.sources && msg.sources.length > 0 && (
                       <div className="sources">
                         <p
@@ -474,27 +455,27 @@ export default function Home() {
                           onClick={() => toggleSource(i)}
                           style={{ cursor: "pointer" }}
                         >
-                          🔍 检索详情（{msg.sources.length} 条命中）{expandedSources[i] ? " ▾" : " ▸"}
+                          {expandedSources[i] ? "▾ 收起检索详情" : "🔍 查看检索详情（点击展开）"}
                         </p>
-                        {msg.sources.map((s, j) => (
-                          <div key={j} className="source-card" title={s.content}>
-                            <div className="source-line">
-                              <span className="source-name">
-                                {s.filename || s.source?.split("\\").pop() || "未知来源"}
-                              </span>
-                              <span className="source-type">
-                                {s.type ? (TYPE_LABEL[s.type] || s.type) : ""}
-                              </span>
-                              {typeof s.score === "number" ? (
-                                <span className="source-score">
-                                  相似度 {(1 - s.score).toFixed(3)}
-                                </span>
-                              ) : (
-                                <span className="source-score bm25-tag">BM25 命中</span>
-                              )}
-                            </div>
-                            {expandedSources[i] && (
-                              <>
+                        {expandedSources[i] && (
+                          <>
+                            {msg.sources.map((s, j) => (
+                              <div key={j} className="source-card" title={s.content}>
+                                <div className="source-line">
+                                  <span className="source-name">
+                                    {s.filename || s.source?.split("\\").pop() || "未知来源"}
+                                  </span>
+                                  <span className="source-type">
+                                    {s.type ? (TYPE_LABEL[s.type] || s.type) : ""}
+                                  </span>
+                                  {typeof s.score === "number" ? (
+                                    <span className="source-score">
+                                      相似度 {(1 - s.score).toFixed(3)}
+                                    </span>
+                                  ) : (
+                                    <span className="source-score bm25-tag">BM25 命中</span>
+                                  )}
+                                </div>
                                 <div className="score-bar">
                                   <div
                                     className="score-fill"
@@ -502,10 +483,10 @@ export default function Home() {
                                   />
                                 </div>
                                 <p className="source-content">{s.content.slice(0, 160)}...</p>
-                              </>
-                            )}
-                          </div>
-                        ))}
+                              </div>
+                            ))}
+                          </>
+                        )}
                       </div>
                     )}
 
@@ -527,30 +508,6 @@ export default function Home() {
                   </>
                 ) : (
                   msg.content
-                )}
-
-                {/* 自动附带的炼金图像（检索命中时） */}
-                {msg.images && msg.images.length > 0 && (
-                  <div className="chat-auto-images">
-                    {msg.images.map((img, ii) => (
-                      <a
-                        key={ii}
-                        href={`/alchemy?img=${encodeURIComponent(img.id)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="chat-auto-image"
-                        title={img.summary || `${img.book_title} p${img.page}`}
-                      >
-                        <img
-                          src={`${API_URL}/static/alchemy/${img.file.replace("/images/alchemy/", "")}`}
-                          alt={img.summary || "炼金图像"}
-                        />
-                        <span className="chat-auto-image-cap">
-                          {img.book_title} · p{img.page}
-                        </span>
-                      </a>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>

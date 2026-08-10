@@ -36,8 +36,8 @@ def _load() -> tuple[list, dict]:
 
 @router.get("/images")
 async def list_images(book: str | None = None, page_type: str | None = None,
-                      limit: int = 50, offset: int = 0):
-    """图库列表：分页 + 按书/类型筛选"""
+                      category: str | None = None, limit: int = 50, offset: int = 0):
+    """图库列表：分页 + 按书/类型/分类筛选"""
     limit = max(1, min(limit, 500))
     offset = max(0, offset)
     meta, interp = _load()
@@ -47,10 +47,12 @@ async def list_images(book: str | None = None, page_type: str | None = None,
             continue
         if page_type and m.get("page_type") != page_type:
             continue
+        if category and m.get("category") != category:
+            continue
         it = dict(m)
         it["summary"] = interp.get(m["id"], {}).get("summary", "")
         items.append(it)
-    items.sort(key=lambda x: (x["book"], x["page"]))
+    items.sort(key=lambda x: (x.get("category", ""), x["book"], x["page"]))
     total = len(items)
     return {"total": total, "items": items[offset:offset + limit]}
 

@@ -13,6 +13,7 @@ type ImgMeta = {
   width: number;
   height: number;
   page_type: string;
+  category?: string;
   summary?: string;
 };
 
@@ -27,13 +28,20 @@ const BOOKS: Record<string, string> = {
   "real-alchemy": "Real Alchemy",
   "manly-hall": "Manly Hall 手稿",
   alchemy: "炼金术",
+  "greek-lamellae": "希腊魔法薄片",
+  "lesser-key": "所罗门小钥匙",
+  "seven-spheres": "七行星界",
+  "graeco-egyptian": "希腊-埃及魔法",
 };
+
+const CATEGORIES = ["炼金术", "魔法实践", "占星术"];
 
 export default function AlchemyPage() {
   const [images, setImages] = useState<ImgMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "插图" | "整页">("all");
   const [book, setBook] = useState<string>("all");
+  const [category, setCategory] = useState<string>("all");
   const [selected, setSelected] = useState<ImgMeta | null>(null);
   const [interp, setInterp] = useState<Interp | null>(null);
   const [interpLoading, setInterpLoading] = useState(false);
@@ -44,6 +52,7 @@ export default function AlchemyPage() {
       const params = new URLSearchParams({ limit: "500" });
       if (filter !== "all") params.set("page_type", filter);
       if (book !== "all") params.set("book", book);
+      if (category !== "all") params.set("category", category);
       const r = await fetch(`${API}/alchemy/images?${params}`);
       const d = await r.json();
       setImages(d.items ?? []);
@@ -52,7 +61,7 @@ export default function AlchemyPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, book]);
+  }, [filter, book, category]);
 
   useEffect(() => {
     load();
@@ -90,7 +99,8 @@ export default function AlchemyPage() {
   }, [loading]);
 
   const grouped = images.reduce<Record<string, ImgMeta[]>>((acc, m) => {
-    (acc[m.book] ??= []).push(m);
+    const key = m.category || "未分类";
+    (acc[key] ??= []).push(m);
     return acc;
   }, {});
 
@@ -98,21 +108,27 @@ export default function AlchemyPage() {
     <main className="alchemy-page">
       <div className="alchemy-header">
         <a href="/" className="back-link">← 返回</a>
-        <h1 className="occult-title">⚗️ 炼金图像</h1>
-        <p className="subtitle">炼金术图像是理解贤者之石秘密的重要途径 — 图像 + AI 解读 + 文献互证</p>
+        <h1 className="occult-title">🖼️ 神秘学图像图库</h1>
+        <p className="subtitle">炼金术、魔法实践、占星术等神秘学图像 — AI 解读 + 文献互证</p>
       </div>
 
       <div className="alchemy-filters">
-        <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="alchemy-select">
-          <option value="all">全部类型</option>
-          <option value="插图">插图</option>
-          <option value="整页">整页</option>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="alchemy-select">
+          <option value="all">全部分类</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
         </select>
         <select value={book} onChange={(e) => setBook(e.target.value)} className="alchemy-select">
           <option value="all">全部书籍</option>
           {Object.entries(BOOKS).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
           ))}
+        </select>
+        <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="alchemy-select">
+          <option value="all">全部类型</option>
+          <option value="插图">插图</option>
+          <option value="整页">整页</option>
         </select>
         <span className="alchemy-count">{images.length} 张</span>
       </div>
@@ -124,7 +140,7 @@ export default function AlchemyPage() {
       ) : (
         Object.entries(grouped).map(([bk, items]) => (
           <section key={bk} className="alchemy-book">
-            <h2 className="alchemy-book-title">{BOOKS[bk] ?? bk} · {items.length} 张</h2>
+            <h2 className="alchemy-book-title">{bk} · {items.length} 张</h2>
             <div className="alchemy-grid">
               {items.map((m) => (
                 <button key={m.id} className="alchemy-card" onClick={() => openDetail(m)} title={m.summary || m.id}>
