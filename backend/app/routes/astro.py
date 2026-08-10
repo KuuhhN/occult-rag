@@ -36,15 +36,48 @@ except Exception:
     _ph_ok = False
 
 
+def _load_city_table() -> dict:
+    """加载内置中国城市坐标表（china_cities.json）"""
+    import json
+    p = os.path.join(os.path.dirname(__file__), "..", "data", "china_cities.json")
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+_CITY_TABLE = _load_city_table()
+
+
 def _resolve_city(city: str | None, lat: float | None, lon: float | None):
-    """解析地点：city 名或经纬度；默认内江"""
-    if city and ph and city in ph.CITIES:
-        return ph.CITIES[city], city
+    """解析地点：城市表精确/模糊匹配 → 经纬度 → 默认内江"""
     if lat is not None and lon is not None:
-        return (lat, lon), ""
-    if ph:
-        return ph.CITIES["内江"], "内江"
+        return (lat, lon), (city or "")
+    name = (city or "").strip()
+    if name:
+        # 精确匹配
+        if name in _CITY_TABLE:
+            return tuple(_CITY_TABLE[name]), name
+        if ph and name in ph.CITIES:
+            return ph.CITIES[name], name
+        # 模糊匹配（"成都市"→"成都"，"内江市"→"内江"）
+        for c, coord in _CITY_TABLE.items():
+            if name in c or c in name:
+                return tuple(coord), c
+        for c, coord in ph.CITIES.items():
+            if name in c or c in name:
+                return coord, c
+    # 默认内江
+    if "内江" in _CITY_TABLE:
+        return tuple(_CITY_TABLE["内江"]), "内江"
     return (29.5803, 105.0584), "内江"
+
+
+@router.get("/cities")
+async def list_cities():
+    """内置中国城市坐标表（前端城市选择用）"""
+    return {"cities": sorted(_CITY_TABLE.keys())}
 
 
 @router.get("")

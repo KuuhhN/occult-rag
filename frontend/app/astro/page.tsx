@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-const CITIES = ["内江", "成都", "北京", "上海", "广州", "深圳"];
 const TALISMAN_KINDS = ["爱情", "财富", "保护", "智慧", "幸运", "沟通", "权威", "疗愈", "驱邪"];
 
 type Hour = { start: string; end: string; planet: string; day_night: string };
@@ -15,6 +14,7 @@ type Window = { date: string; day_night: string; start: string; end: string; sig
 export default function AstroPage() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [city, setCity] = useState("内江");
+  const [cities, setCities] = useState<string[]>([]);
   const [kind, setKind] = useState("爱情");
   const [hours, setHours] = useState<Hour[]>([]);
   const [states, setStates] = useState<PlanetState[]>([]);
@@ -63,6 +63,11 @@ export default function AstroPage() {
 
   useEffect(() => {
     loadHours();
+    // 加载内置城市表
+    fetch(`${API}/planetary-hours/cities`)
+      .then((r) => r.json())
+      .then((d) => setCities(d.cities || []))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,11 +86,19 @@ export default function AstroPage() {
           onChange={(e) => setDate(e.target.value)}
           className="alchemy-select"
         />
-        <select value={city} onChange={(e) => setCity(e.target.value)} className="alchemy-select">
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+        <input
+          type="text"
+          list="city-list"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="输入城市名（如：内江 / 成都 / 上海）"
+          className="alchemy-select astro-city-input"
+        />
+        <datalist id="city-list">
+          {cities.map((c) => (
+            <option key={c} value={c} />
           ))}
-        </select>
+        </datalist>
         <button className="sidebar-btn primary" onClick={loadHours} disabled={loading}>
           计算行星时
         </button>
