@@ -415,6 +415,7 @@ export default function Home() {
           <div className="nav-links">
             <a href="/alchemy" className="nav-link">🖼️ 图库</a>
             <a href="/tarot" className="nav-link">🔮 塔罗</a>
+            <a href="/astro" className="nav-link">🔯 择时</a>
             <a href="/kb" className="nav-link">📚 知识库</a>
             <a href="/settings" className="nav-link">⚙️ 设置</a>
           </div>

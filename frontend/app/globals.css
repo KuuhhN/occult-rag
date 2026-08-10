@@ -1612,3 +1612,56 @@ button:disabled {
 
 /* ===== 对话区（输入行） ===== */
 .input-row { display: flex; gap: 0.5rem; width: 100%; }
+
+/* ===== 占星择时（/astro） ===== */
+.astro-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.astro-day-summary {
+  display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03));
+  border: 1px solid rgba(212,175,55,0.35); border-radius: 12px;
+  padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;
+}
+.astro-day-ruler strong { color: var(--accent); font-size: 1.1rem; }
+.astro-suntime { color: var(--text-dim); }
+.astro-section { margin-bottom: 2.2rem; }
+.astro-states {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.7rem;
+}
+.astro-state {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  background: var(--panel); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 0.7rem 0.9rem;
+}
+.astro-state.retro { border-color: rgba(255,107,107,0.5); }
+.astro-state-name { font-family: var(--font-display); font-size: 1.1rem; color: var(--accent); }
+.astro-state-sign { font-size: 0.85rem; color: var(--text); }
+.astro-state-status { font-size: 0.75rem; color: var(--text-dim); }
+.astro-hours {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem;
+}
+.astro-hour {
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+  background: var(--panel); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 0.5rem; font-size: 0.8rem;
+}
+.astro-hour.day { border-top: 2px solid rgba(212,175,55,0.6); }
+.astro-hour.night { border-top: 2px solid rgba(120,120,255,0.5); }
+.astro-hour-planet { font-weight: 600; color: var(--accent); }
+.astro-hour-dn { font-size: 0.7rem; color: var(--text-dim); }
+.astro-windows { display: flex; flex-direction: column; gap: 0.5rem; }
+.astro-window {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 0.6rem 1rem; font-size: 0.88rem;
+}
+.astro-window.good { border-left: 4px solid rgba(120,220,130,0.7); }
+.astro-window.retro { border-left: 4px solid rgba(255,107,107,0.7); }
+.astro-window-rank {
+  width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(212,175,55,0.2); color: var(--accent); font-weight: 700;
+}
+.astro-window-date { font-weight: 600; }
+.astro-window-time { color: var(--accent); }
+.astro-window-sign { color: var(--text); }
+.astro-window-status { font-size: 0.78rem; color: var(--text-dim); }
