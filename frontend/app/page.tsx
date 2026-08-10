@@ -535,7 +535,7 @@ export default function Home() {
                     {msg.images.map((img, ii) => (
                       <a
                         key={ii}
-                        href="/alchemy"
+                        href={`/alchemy?img=${encodeURIComponent(img.id)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="chat-auto-image"

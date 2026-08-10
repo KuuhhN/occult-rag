@@ -1,7 +1,8 @@
 "use client";
 
 // 炼金图像版块：图库墙（按书分组）→ 点击弹解读卡片（多模态 RAG 成果展示）
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type ImgMeta = {
   id: string;
@@ -71,6 +72,22 @@ export default function AlchemyPage() {
       setInterpLoading(false);
     }
   };
+
+  // 支持 URL 直达：/alchemy?img=<id> 时自动打开对应图解读
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("img");
+  const autoOpenedRef = useRef(false);
+
+  useEffect(() => {
+    if (loading || !targetId || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    const target = images.find((m) => m.id === targetId);
+    if (target) {
+      openDetail(target);
+    }
+    // 只触发一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const grouped = images.reduce<Record<string, ImgMeta[]>>((acc, m) => {
     (acc[m.book] ??= []).push(m);
