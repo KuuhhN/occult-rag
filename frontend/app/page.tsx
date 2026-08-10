@@ -28,7 +28,7 @@ interface Message {
   followups?: string[];
   questionType?: string;
   typeDescription?: string;
-  image?: { file: string; book_title: string; page: number; summary?: string };
+  image?: { id: string; file: string; book_title: string; page: number; summary?: string };
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -219,7 +219,7 @@ export default function Home() {
         const res = await fetch(`${API_URL}/alchemy/interpret`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image_id: img.file.replace("/images/alchemy/", ""), question: userMsg }),
+          body: JSON.stringify({ image_id: img.id, question: userMsg }),
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -653,6 +653,7 @@ export default function Home() {
                     className="attach-picker-card"
                     onClick={() => {
                       setAttachedImage({
+                        id: m.id,
                         file: m.file,
                         book_title: m.book_title,
                         page: m.page,

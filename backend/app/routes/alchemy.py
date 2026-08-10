@@ -116,6 +116,7 @@ async def interpret_image(req: InterpretRequest):
 @router.get("/search")
 async def search_images(q: str = "", limit: int = 10):
     """按关键词/文件名搜索图像（解读关键词匹配）"""
+    limit = max(1, min(limit, 50))
     meta, interp = _load()
     ql = q.lower()
     hits = []

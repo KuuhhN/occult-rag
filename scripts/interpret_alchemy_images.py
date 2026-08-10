@@ -72,7 +72,9 @@ def parse(text: str) -> dict:
             summary = val_after(i).lstrip("#").strip()
         if "关键词" in l:
             k_idx = i
-            kws = [k.strip() for k in val_after(i).split(",") if k.strip()]
+            raw = val_after(i).replace("#", "")
+            # 兼容：英文逗号 / 中文顿号 / "- 双头龙" 前缀 混排
+            kws = [k.strip().lstrip("- ").strip() for k in raw.replace("、", ",").split(",") if k.strip()]
     if s_idx >= 0 and k_idx > s_idx:
         body = lines[s_idx + 1:k_idx]
     elif s_idx >= 0:
