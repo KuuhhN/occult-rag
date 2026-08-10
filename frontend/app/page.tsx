@@ -28,7 +28,7 @@ interface Message {
   followups?: string[];
   questionType?: string;
   typeDescription?: string;
-  image?: { id: string; file: string; book_title: string; page: number; summary?: string };
+  images?: { id: string; file: string; book_title: string; page: number; summary?: string }[];
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -52,10 +52,6 @@ export default function Home() {
   const [error, setError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // 附图问答状态（炼金图 → /alchemy/interpret）
-  const [attachedImage, setAttachedImage] = useState<Message["image"] | null>(null);
-  const [showPicker, setShowPicker] = useState(false);
-  const [alchemyImages, setAlchemyImages] = useState<any[]>([]);
 
   // 加载会话列表
   const loadConversations = useCallback(async () => {
@@ -175,76 +171,22 @@ export default function Home() {
     setTimeout(() => document.getElementById("send-btn")?.click(), 50);
   };
 
-  // 加载炼金图库（附图选择器用）
-  const loadAlchemyImages = async () => {
-    try {
-      const res = await fetch(`${API_URL}/alchemy/images?limit=200`);
-      if (res.ok) {
-        const data = await res.json();
-        setAlchemyImages(data.items || []);
-      }
-    } catch {
-      // 图库加载失败静默
-    }
-  };
-
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!question.trim() || loading) return;
 
     const userMsg = question.trim();
-    const img = attachedImage;
     setQuestion("");
-    setAttachedImage(null);
     setError("");
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: userMsg, image: img ?? undefined },
+      { role: "user", content: userMsg },
     ]);
     setLoading(true);
 
     const assistantIdx = messages.length + 1;
     const controller = new AbortController();
     abortRef.current = controller;
-
-    // 附图 → 走炼金图像解读接口（VLM 解读 + 知识库检索）
-    if (img) {
-      try {
-        setMessages((prev) => {
-          const updated = [...prev];
-          if (!updated[assistantIdx]) updated.push({ role: "assistant", content: "", image: img });
-          else updated[assistantIdx] = { ...updated[assistantIdx], image: img };
-          return updated;
-        });
-        const res = await fetch(`${API_URL}/alchemy/interpret`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image_id: img.id, question: userMsg }),
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const sources: Source[] = (data.sources || []).map((s: any) => ({
-          content: s.content || s.text || "",
-          source: s.source || s.metadata?.source || "",
-          filename: s.filename || s.metadata?.filename || "",
-          score: s.score,
-          type: s.type || s.metadata?.type || "",
-        }));
-        setMessages((prev) => {
-          const updated = [...prev];
-          if (updated[assistantIdx]) updated[assistantIdx] = { ...updated[assistantIdx], content: data.answer, sources };
-          return updated;
-        });
-      } catch (err: any) {
-        if (err?.name !== "AbortError") {
-          setError("附图解读失败，请检查后端与图库。");
-        }
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
 
     // 读取设置（top_k / 背景文献开关 / 检索模式）
     const topK = parseInt(localStorage.getItem("rag_top_k") || "5", 10) || 5;
@@ -339,6 +281,24 @@ export default function Home() {
                     updated.push({ role: "assistant", content: "", sources: json as Source[] });
                   } else {
                     updated[assistantIdx] = { ...updated[assistantIdx], sources: json as Source[] };
+                  }
+                  return updated;
+                });
+              }
+            } catch {
+              // 解析失败忽略
+            }
+          } else if (lastEvent === "images") {
+            // 检索自动附带的炼金图像
+            try {
+              const json = JSON.parse(data);
+              if (Array.isArray(json)) {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  if (!updated[assistantIdx]) {
+                    updated.push({ role: "assistant", content: "", images: json as any[] });
+                  } else {
+                    updated[assistantIdx] = { ...updated[assistantIdx], images: json as any[] };
                   }
                   return updated;
                 });
@@ -569,13 +529,28 @@ export default function Home() {
                   msg.content
                 )}
 
-                {/* 附图缩略图（assistant 带图时显示） */}
-                {msg.image && (
-                  <img
-                    src={`${API_URL}/static/alchemy/${msg.image.file.replace("/images/alchemy/", "")}`}
-                    alt={msg.image.summary || "炼金图像"}
-                    className="chat-attached-img"
-                  />
+                {/* 自动附带的炼金图像（检索命中时） */}
+                {msg.images && msg.images.length > 0 && (
+                  <div className="chat-auto-images">
+                    {msg.images.map((img, ii) => (
+                      <a
+                        key={ii}
+                        href="/alchemy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chat-auto-image"
+                        title={img.summary || `${img.book_title} p${img.page}`}
+                      >
+                        <img
+                          src={`${API_URL}/static/alchemy/${img.file.replace("/images/alchemy/", "")}`}
+                          alt={img.summary || "炼金图像"}
+                        />
+                        <span className="chat-auto-image-cap">
+                          {img.book_title} · p{img.page}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -593,37 +568,12 @@ export default function Home() {
         </div>
 
         <form className="input-form" onSubmit={handleSubmit}>
-          {/* 附图条：已选中的炼金图 */}
-          {attachedImage && (
-            <div className="attach-bar">
-              <img
-                src={`${API_URL}/static/alchemy/${attachedImage.file.replace("/images/alchemy/", "")}`}
-                alt="已附图"
-                className="attach-thumb"
-              />
-              <span className="attach-name">
-                {attachedImage.book_title} · p{attachedImage.page}
-              </span>
-              <button type="button" className="attach-remove" onClick={() => setAttachedImage(null)}>✕</button>
-            </div>
-          )}
           <div className="input-row">
-            <button
-              type="button"
-              className="attach-btn"
-              title="引用炼金图像"
-              onClick={() => {
-                if (alchemyImages.length === 0) loadAlchemyImages();
-                setShowPicker((v) => !v);
-              }}
-            >
-              ⚗️
-            </button>
             <input
               type="text"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder={attachedImage ? "追问这张炼金图像…" : "输入你的问题，如「炼金术的核心原理是什么？」"}
+              placeholder="输入你的问题，如「炼金术的核心原理是什么？」"
               disabled={loading}
             />
             {loading ? (
@@ -637,43 +587,6 @@ export default function Home() {
             )}
           </div>
         </form>
-
-        {/* 附图选择器弹层 */}
-        {showPicker && (
-          <div className="attach-picker" onClick={() => setShowPicker(false)}>
-            <div className="attach-picker-body" onClick={(e) => e.stopPropagation()}>
-              <div className="attach-picker-header">
-                <span>选择炼金图像（点击附图提问）</span>
-                <button type="button" onClick={() => setShowPicker(false)}>✕</button>
-              </div>
-              <div className="attach-picker-grid">
-                {alchemyImages.map((m) => (
-                  <button
-                    key={m.id}
-                    className="attach-picker-card"
-                    onClick={() => {
-                      setAttachedImage({
-                        id: m.id,
-                        file: m.file,
-                        book_title: m.book_title,
-                        page: m.page,
-                        summary: m.summary,
-                      });
-                      setShowPicker(false);
-                    }}
-                  >
-                    <img
-                      src={`${API_URL}/static/alchemy/${m.file.replace("/images/alchemy/", "")}`}
-                      alt={m.summary || m.id}
-                      loading="lazy"
-                    />
-                    <span>{m.summary?.slice(0, 18) || m.id}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );

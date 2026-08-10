@@ -99,6 +99,48 @@ async def _do_retrieve(question: str, top_k: int, include_background: bool, retr
     return sources_raw
 
 
+def _extract_alchemy_images(sources_raw: list) -> list:
+    """从检索结果中提取炼金图像（type=alchemy-image），供自动附图
+
+    source 格式：炼金图像/{book_title}/p{page}；用 metadata.json 反查真实 file。
+    """
+    from ..models.schemas import AlchemyImage
+    import json
+    import os
+    import re
+
+    # 加载炼金图 metadata（book_title → 真实 file 路径）
+    meta_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "..", "frontend",
+        "public", "images", "alchemy", "metadata.json")
+    try:
+        meta = json.load(open(meta_path, encoding="utf-8"))
+        meta_by_source = {}
+        for m in meta:
+            key = f"炼金图像/{m['book_title']}/p{m['page']}"
+            meta_by_source[key] = m
+    except Exception:
+        meta_by_source = {}
+
+    images = []
+    for s in sources_raw:
+        if s.get("type") != "alchemy-image":
+            continue
+        src = s.get("source", "")
+        m = meta_by_source.get(src)
+        if not m:
+            continue
+        content = s.get("content", "")
+        images.append(AlchemyImage(
+            id=m.get("id", ""),
+            file=m.get("file", ""),
+            summary=content.split("：", 1)[-1][:80] if "：" in content else "",
+            book_title=m.get("book_title", ""),
+            page=int(m.get("page", 0) or 0),
+        ))
+    return images
+
+
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """RAG 问答（非流式，多轮对话）"""
@@ -138,7 +180,9 @@ async def chat(request: ChatRequest):
             )
             for s in sources_raw
         ]
-        return ChatResponse(answer=answer, sources=sources, conversation_id=conversation_id)
+        images = _extract_alchemy_images(sources_raw)
+        return ChatResponse(answer=answer, sources=sources, images=images,
+                            conversation_id=conversation_id)
     except Exception as e:
         import logging
         logging.getLogger(__name__).exception("RAG 问答失败")
@@ -196,6 +240,13 @@ async def chat_stream(request: ChatRequest):
                 for s in sources_raw
             ]
             yield {"event": "sources", "data": json.dumps(sources_data, ensure_ascii=False)}
+
+            # 自动附带的炼金图像（检索命中时）
+            images = _extract_alchemy_images(sources_raw)
+            if images:
+                yield {"event": "images", "data": json.dumps(
+                    [img.model_dump() for img in images], ensure_ascii=False,
+                )}
 
             full_answer = ""
             async for chunk in chain.astream({

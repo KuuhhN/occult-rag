@@ -29,9 +29,19 @@ class SourceDoc(BaseModel):
     filename: str = ""          # 来源文件名
 
 
+class AlchemyImage(BaseModel):
+    """炼金图像（随检索自动附带）"""
+    id: str = ""                # 图像 id（如 real-alchemy/000-0.jpg）
+    file: str = ""              # 展示路径（/images/alchemy/xxx）
+    summary: str = ""           # 一句话摘要
+    book_title: str = ""        # 书名
+    page: int = 0
+
+
 class ChatResponse(BaseModel):
     answer: str
     sources: list[SourceDoc] = []
+    images: list[AlchemyImage] = []   # 检索自动附带的炼金图像
     conversation_id: str = Field(default="", description="会话 ID（客户端保存用于多轮对话）")
 
 

@@ -141,7 +141,11 @@ def embed_interpretations():
         text = f"炼金图像 {m['book_title']} 第{m['page']}页：{info.get('summary','')} {info.get('interpretation','')}"
         docs.append(Document(
             page_content=text,
-            metadata={"source": f"炼金图像/{m['book_title']}/p{m['page']}", "type": "alchemy-image"},
+            metadata={"source": f"炼金图像/{m['book_title']}/p{m['page']}",
+                      "type": "alchemy-image",
+                      # 必须带 category 非 background，否则 retrieve 的
+                      # $ne: background filter 会把无 category 文档排除
+                      "category": "alchemy-image"},
         ))
     if not docs:
         return 0
