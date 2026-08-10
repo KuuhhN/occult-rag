@@ -115,15 +115,32 @@ def create_embeddings() -> OllamaEmbeddings:
     )
 
 
+import threading
+
+_vectorstore_cache: PGVector | None = None
+_vectorstore_lock = threading.Lock()
+
+
 def create_vectorstore() -> PGVector:
-    """创建 PGVector 向量存储实例"""
-    embeddings = create_embeddings()
-    return PGVector(
-        embeddings=embeddings,
-        collection_name=COLLECTION_NAME,
-        connection=CONNECTION_STRING,
-        use_jsonb=True,
-    )
+    """创建 PGVector 向量存储实例
+
+    ponytail: 进程级单例 + 锁——LangChain PGVector 同进程重复实例化会触发
+    "langchain_pg_collection already defined for this MetaData" 报错；
+    并发检索（chat + alchemy 附图双查询）会同时触发初始化，必须加锁。
+    升级路径：LangChain 修复后可直接去掉缓存与锁。
+    """
+    global _vectorstore_cache
+    if _vectorstore_cache is None:
+        with _vectorstore_lock:
+            if _vectorstore_cache is None:  # 双重检查，防竞态
+                embeddings = create_embeddings()
+                _vectorstore_cache = PGVector(
+                    embeddings=embeddings,
+                    collection_name=COLLECTION_NAME,
+                    connection=CONNECTION_STRING,
+                    use_jsonb=True,
+                )
+    return _vectorstore_cache
 
 
 def load_markdown_files(data_dir: str | Path) -> list[LCDocument]:

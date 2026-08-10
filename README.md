@@ -20,12 +20,31 @@
 | 🔀 **混合检索** | 向量语义 + BM25 关键词 + RRF 融合 | Postgres tsvector + nomic-embed-text |
 | 🎯 **分层检索** | 按问题类型（概览/细节）分层召回 | 元数据过滤 + 关键词启发式分类 |
 | 🔮 **塔罗抽牌** | 78 张牌，AI 基于知识库解读（不硬编码） | RAG 业务闭环 + 3D 翻牌动画 |
+| ⚗️ **炼金图像解读** | 364 张炼金图像，VLM 解读 + 文献互证 + 附图问答 | **多模态 RAG**：pymupdf 抠图 → 智谱 glm-4v-flash 解读 → 向量化检索 |
 | 💬 **多轮对话** | 会话管理、历史回显、建议问题 | Redis-free 内存记忆（最近 6 轮） |
 | 📚 **知识库管理** | 统计、文档列表、上传入库、检索可视化 | /kb 管理页 + /settings 参数面板 |
 
 ---
 
 ## 🏗️ 架构
+
+```
+前端（Next.js 15）
+  ├─ /         聊天页（RAG 问答 + 附图问答）
+  ├─ /alchemy  炼金图像库（364 图，VLM 解读弹层）
+  ├─ /tarot    塔罗抽牌（3D 翻牌）
+  ├─ /kb       知识库管理
+  └─ /settings 检索参数
+后端（FastAPI）
+  ├─ /chat           RAG 问答（SSE 流式）
+  ├─ /alchemy        炼金图像（列表/详情/附图解读/搜索）
+  ├─ /tarot          塔罗抽牌（RAG 解读）
+  └─ /static/alchemy 炼金图静态服务
+数据层
+  ├─ PostgreSQL + pgvector  向量检索（langchain_pg_embedding）
+  ├─ Postgres tsvector      BM25 关键词检索
+  └─ Ollama                 nomic-embed-text（768 维向量）+ qwen2.5（生成）
+```
 
 ```
 浏览器 (Next.js 15)
@@ -138,6 +157,20 @@ occult-rag/
   `scripts/fetch_tarot_assets.py` 可一键下载
 - **可替换**：覆盖 `major/major-XX.jpg` 为任意图（文件名不变前端零改动）；
   不希望包含 JOJO 图的部署可删除 `major/` 目录（自动回退文字牌面）
+
+---
+
+## ⚗️ 炼金图像解读（多模态 RAG）
+
+炼金术图像是理解贤者之石秘密的重要途径——本项目把炼金术书籍中的图像变成了**可检索、可对话的知识**：
+
+- **364 张炼金图像**：从《Real Alchemy》《Manly Hall 炼金术手稿合集》《炼金术》3 本书用 pymupdf 自动抠图
+- **VLM 解读**：智谱 `glm-4v-flash`（免费）逐图生成解读——图意、符号含义（衔尾蛇/凤凰/哲学家之蛋）、炼金阶段（黑化 nigredo → 白化 albedo → 红化 rubedo）
+- **图像可检索（真正的多模态 RAG）**：解读文本向量化入 pgvector——问「贤者之石符号」「黑化阶段」能**检索到图像**，而不只是文字
+- **附图问答**：聊天区可引用任意炼金图提问，AI 结合图像解读 + 知识库文献综合回答
+- **图像管线可复现**：`scripts/extract_alchemy_images.py`（抠图）→ `compress_alchemy_images.py`（压缩 694MB→35MB）→ `interpret_alchemy_images.py`（VLM 解读，断点续跑）
+
+> ⚠️ 炼金图像解读走**视觉模型**（智谱免费额度），**不消耗腾讯云 OCR**——OCR 只用于扫描书文字提取。
 
 ---
 

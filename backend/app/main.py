@@ -1,5 +1,6 @@
 """FastAPI 主入口"""
 import asyncio
+import os
 from contextlib import asynccontextmanager
 import logging
 
@@ -7,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routes import chat, ingest, kb, tarot
+from .routes import alchemy, chat, ingest, kb, tarot
 from .models.schemas import HealthResponse
 
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +57,13 @@ app.include_router(chat.router)
 app.include_router(ingest.router)
 app.include_router(kb.router)
 app.include_router(tarot.router)
+app.include_router(alchemy.router)
+
+# 炼金图像静态服务（/static/alchemy/<book>/<file>）
+_static_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "images", "alchemy")
+if os.path.isdir(_static_dir):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/static/alchemy", StaticFiles(directory=_static_dir), name="alchemy-images")
 
 
 @app.get("/health", response_model=HealthResponse)

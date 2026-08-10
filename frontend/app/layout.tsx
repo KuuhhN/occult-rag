@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Noto_Sans_SC, Noto_Serif_SC } from "next/font/google";
+// 本地字体（@fontsource）——不依赖 Google Fonts 网络，构建/运行时稳定
+import "@fontsource/cormorant-garamond/400.css";
+import "@fontsource/cormorant-garamond/500.css";
+import "@fontsource/cormorant-garamond/600.css";
+import "@fontsource/cormorant-garamond/700.css";
+import "@fontsource/noto-sans-sc/chinese-simplified-400.css";
+import "@fontsource/noto-sans-sc/chinese-simplified-500.css";
+import "@fontsource/noto-sans-sc/chinese-simplified-700.css";
+import "@fontsource/noto-serif-sc/chinese-simplified-600.css";
+import "@fontsource/noto-serif-sc/chinese-simplified-700.css";
 import "./globals.css";
-
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-display",
-});
-
-const serif = Noto_Serif_SC({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-serif-sc",
-});
-
-const body = Noto_Sans_SC({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-body",
-});
 
 export const metadata: Metadata = {
   title: "神秘学顾问 · Occult Advisor",
@@ -32,9 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className={`${display.variable} ${serif.variable} ${body.variable}`}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

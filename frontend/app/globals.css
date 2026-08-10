@@ -23,6 +23,7 @@
   --error: hsl(0 60% 55%);
   --success: hsl(150 45% 45%);
   --font-display: "Cormorant Garamond", "Noto Serif SC", serif;
+  --font-serif-sc: "Noto Serif SC", serif;
   --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
@@ -1461,4 +1462,126 @@ button:disabled {
   color: var(--text-primary);
   font-size: 0.95rem;
   line-height: 1.85;
+}
+
+/* ===== 炼金图像版块 ===== */
+.alchemy-page { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.alchemy-header { text-align: center; margin-bottom: 1.5rem; position: relative; }
+.alchemy-header .back-link {
+  position: absolute; left: 0; top: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.9rem;
+}
+.alchemy-filters { display: flex; gap: 0.8rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+.alchemy-select {
+  background: var(--panel); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px; padding: 0.45rem 0.9rem; font-size: 0.85rem; font-family: var(--font-body);
+}
+.alchemy-count { color: var(--text-dim); font-size: 0.85rem; }
+.alchemy-book { margin-bottom: 2.2rem; }
+.alchemy-book-title {
+  font-family: var(--font-display); font-size: 1.3rem; color: var(--accent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.4rem; margin-bottom: 1rem;
+}
+.alchemy-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;
+}
+.alchemy-card {
+  position: relative; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;
+  background: var(--panel); padding: 0; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  aspect-ratio: 3/4;
+}
+.alchemy-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45); }
+.alchemy-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.alchemy-card-page {
+  position: absolute; top: 0.4rem; left: 0.4rem; background: rgba(0, 0, 0, 0.6);
+  color: var(--accent); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 5px;
+}
+.alchemy-card-summary {
+  position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.72);
+  color: var(--text); font-size: 0.72rem; padding: 0.35rem 0.5rem; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.alchemy-modal {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 2rem;
+}
+.alchemy-modal-body {
+  position: relative; background: var(--panel); border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px; max-width: 860px; width: 100%; max-height: 88vh; overflow: auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0;
+}
+.alchemy-modal-close {
+  position: absolute; top: 0.6rem; right: 0.6rem; z-index: 2; background: rgba(0, 0, 0, 0.55);
+  color: var(--text); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%;
+  width: 2rem; height: 2rem; cursor: pointer; font-size: 0.9rem;
+}
+.alchemy-modal-img { width: 100%; height: 100%; object-fit: contain; max-height: 88vh; background: #111; }
+.alchemy-modal-info { padding: 1.5rem; overflow-y: auto; }
+.alchemy-modal-info h3 { font-family: var(--font-display); color: var(--accent); margin-bottom: 0.8rem; }
+.alchemy-interp-summary { color: var(--accent); font-weight: 600; margin-bottom: 0.6rem; }
+.alchemy-interp { color: var(--text-dim); font-size: 0.88rem; line-height: 1.7; white-space: pre-wrap; }
+.alchemy-keywords { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+.alchemy-keyword {
+  background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--accent); border-radius: 20px; padding: 0.2rem 0.7rem; font-size: 0.75rem;
+}
+.alchemy-empty { color: var(--text-dim); text-align: center; padding: 2rem; }
+@media (max-width: 700px) {
+  .alchemy-modal-body { grid-template-columns: 1fr; max-height: 92vh; }
+  .alchemy-modal-img { max-height: 45vh; }
+}
+
+/* ===== 对话附图问答 ===== */
+.input-row { display: flex; gap: 0.5rem; width: 100%; }
+.attach-btn {
+  background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 10px; color: var(--accent); font-size: 1.1rem; cursor: pointer;
+  padding: 0 0.7rem; flex-shrink: 0; transition: background 0.2s;
+}
+.attach-btn:hover { background: rgba(212, 175, 55, 0.25); }
+.attach-bar {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  background: var(--panel); border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px; padding: 0.4rem 0.7rem; margin-bottom: 0.5rem;
+}
+.attach-thumb { width: 36px; height: 48px; object-fit: cover; border-radius: 5px; border: 1px solid rgba(255,255,255,0.15); }
+.attach-name { flex: 1; font-size: 0.8rem; color: var(--text-dim); }
+.attach-remove {
+  background: none; border: none; color: var(--text-dim); font-size: 0.9rem; cursor: pointer;
+}
+.attach-remove:hover { color: #ff6b6b; }
+.attach-picker {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 2rem;
+}
+.attach-picker-body {
+  background: var(--panel); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px;
+  max-width: 720px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+}
+.attach-picker-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.8rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem; color: var(--text);
+}
+.attach-picker-header button { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem; }
+.attach-picker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.6rem;
+  padding: 1rem; overflow-y: auto;
+}
+.attach-picker-card {
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden;
+  background: #1a1c26; cursor: pointer; padding: 0; text-align: center;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.attach-picker-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.attach-picker-card img { width: 100%; height: 88px; object-fit: cover; display: block; }
+.attach-picker-card span {
+  display: block; font-size: 0.65rem; color: var(--text-dim); padding: 0.25rem 0.3rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-attached-img {
+  max-width: 160px; border-radius: 8px; margin-top: 0.6rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+@media (max-width: 640px) {
+  .attach-picker-grid { grid-template-columns: repeat(3, 1fr); }
 }
