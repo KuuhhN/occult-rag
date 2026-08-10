@@ -124,10 +124,12 @@ export default function TarotPage() {
 
         {error && <p className="tarot-error">{error}</p>}
 
-        {/* 洗牌动画：单抽 1 张牌背，三抽 3 张 */}
+        {/* 洗牌动画：单抽 1 张 JOJO 卡背，三抽 3 张常规卡背 */}
         {loading && (
           <div className={`tarot-loading ${count === 1 ? "single" : ""}`} aria-label="洗牌中">
-            <div className="card-back">🜃</div>
+            <div className={`card-back ${count === 1 ? "jojo" : ""}`}>
+              {count === 1 ? <span className="jojo-mark">J</span> : "🜃"}
+            </div>
             {count > 1 && <div className="card-back delay-1">🜂</div>}
             {count > 1 && <div className="card-back delay-2">🜁</div>}
           </div>
