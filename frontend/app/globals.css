@@ -1508,12 +1508,54 @@ button:disabled {
 .alchemy-header .back-link {
   position: absolute; left: 0; top: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.9rem;
 }
-.alchemy-filters { display: flex; gap: 0.8rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
-.alchemy-select {
-  background: var(--panel); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px; padding: 0.45rem 0.9rem; font-size: 0.85rem; font-family: var(--font-body);
+.alchemy-filters {
+  display: flex; gap: 0.8rem; align-items: center; justify-content: center;
+  margin-bottom: 2rem; flex-wrap: wrap;
 }
-.alchemy-count { color: var(--text-dim); font-size: 0.85rem; }
+/* 筛选下拉：明显化（深色面板 + 金色边框 + 自定义箭头 + hover 高亮） */
+.alchemy-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background:
+    linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02)),
+    var(--panel);
+  color: var(--text);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 10px;
+  padding: 0.55rem 2.2rem 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  /* 自定义下拉箭头 */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+    linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 3px),
+    calc(100% - 11px) calc(50% - 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+.alchemy-select:hover {
+  border-color: rgba(212, 175, 55, 0.7);
+  box-shadow: 0 3px 12px rgba(212, 175, 55, 0.15);
+}
+.alchemy-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+.alchemy-select option {
+  background: #1a1c26; color: var(--text);
+}
+.alchemy-count {
+  color: var(--text-dim); font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; padding: 0.45rem 0.9rem;
+}
 .alchemy-book { margin-bottom: 2.2rem; }
 .alchemy-book-title {
   font-family: var(--font-display); font-size: 1.3rem; color: var(--accent);
