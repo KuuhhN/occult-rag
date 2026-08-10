@@ -77,8 +77,14 @@ FALLBACK_ANSWER = (
 )
 
 async def _do_retrieve(question: str, top_k: int, include_background: bool, retrieval_mode: str = "hybrid") -> list:
-    """统一检索入口：hybrid（向量+BM25 RRF）或 vector（纯向量）"""
+    """统一检索入口：hybrid（向量+BM25 RRF）或 vector（纯向量）
+
+    额外并行检索炼金图像（alchemy-image 子集）：
+    炼金图仅 364 条 vs 文档 6 万+，全库 top_k 永远排不进；单独
+    对 alchemy-image 类型检索，保证相关话题能命中图像。
+    """
     from ..rag.retrieve import retrieve
+    from ..rag.ingest import create_vectorstore
 
     sources_raw = await asyncio.to_thread(
         retrieve, question, top_k=top_k, include_background=include_background
@@ -96,6 +102,30 @@ async def _do_retrieve(question: str, top_k: int, include_background: bool, retr
         except Exception:
             import logging
             logging.getLogger(__name__).exception("混合检索失败，回退纯向量")
+
+    # 单独检索炼金图像（保证相关话题必有图）
+    try:
+        vs = create_vectorstore()
+        img_docs = await asyncio.to_thread(
+            vs.similarity_search, question, k=3,
+            filter={"type": "alchemy-image"},
+        )
+        img_sources = [
+            {
+                "content": d.page_content,
+                "source": d.metadata.get("source", ""),
+                "filename": d.metadata.get("filename", ""),
+                "category": d.metadata.get("category", ""),
+                "type": "alchemy-image",
+                "score": 0.0,
+            }
+            for d in img_docs
+        ]
+        # 合并（炼金图排前，保证被提取）
+        sources_raw = img_sources + sources_raw
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("炼金图检索失败，忽略")
     return sources_raw
 
 
@@ -123,6 +153,7 @@ def _extract_alchemy_images(sources_raw: list) -> list:
         meta_by_source = {}
 
     images = []
+    seen_ids = set()
     for s in sources_raw:
         if s.get("type") != "alchemy-image":
             continue
@@ -130,14 +161,20 @@ def _extract_alchemy_images(sources_raw: list) -> list:
         m = meta_by_source.get(src)
         if not m:
             continue
+        img_id = m.get("id", "")
+        if img_id in seen_ids:
+            continue
+        seen_ids.add(img_id)
         content = s.get("content", "")
         images.append(AlchemyImage(
-            id=m.get("id", ""),
+            id=img_id,
             file=m.get("file", ""),
             summary=content.split("：", 1)[-1][:80] if "：" in content else "",
             book_title=m.get("book_title", ""),
             page=int(m.get("page", 0) or 0),
         ))
+        if len(images) >= 3:
+            break
     return images
 
 
