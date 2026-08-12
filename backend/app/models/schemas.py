@@ -35,10 +35,17 @@ class ChatResponse(BaseModel):
     conversation_id: str = Field(default="", description="会话 ID（客户端保存用于多轮对话）")
 
 
+class AnalyzeResult(BaseModel):
+    summary: str = ""
+    guide: str = ""
+    keywords: list[str] = []
+
+
 class IngestResponse(BaseModel):
     status: str
     chunks_count: int
     source: str = ""
+    analyze: AnalyzeResult | None = None
 
 
 class HealthResponse(BaseModel):

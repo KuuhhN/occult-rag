@@ -46,6 +46,8 @@ export default function KnowledgeBase() {
   const [typeFilter, setTypeFilter] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [analyzeOn, setAnalyzeOn] = useState(true);  // ✨ 一键分析归纳开关
+  const [analyzeResult, setAnalyzeResult] = useState<{ summary?: string; guide?: string; keywords?: string[] } | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
   const loadStats = useCallback(async () => {
@@ -78,20 +80,24 @@ export default function KnowledgeBase() {
     loadDocs();
   }, [loadStats, loadDocs]);
 
-  // 上传文件（单文件，兼容拖拽和选择）
+  // 上传文件（单文件，兼容拖拽和选择；analyze=一键分析归纳）
   const uploadFile = async (file: File) => {
     setUploading(true);
     setUploadMsg("");
+    setAnalyzeResult(null);
     try {
       const form = new FormData();
       form.append("file", file);
+      if (analyzeOn) form.append("analyze", "true");
       const res = await fetch(`${API_URL}/ingest/file`, {
         method: "POST",
         body: form,
       });
       const data = await res.json();
       if (res.ok) {
-        setUploadMsg(`✅ ${file.name} 入库成功（${data.chunks || "?"} 块）`);
+        const analyzeNote = data.analyze ? " + ✨自动归纳" : "";
+        setUploadMsg(`✅ ${file.name} 入库成功（${data.chunks_count || "?"} 块${analyzeNote}）`);
+        if (data.analyze) setAnalyzeResult(data.analyze);
         loadStats();
         loadDocs();
       } else {
@@ -178,12 +184,12 @@ export default function KnowledgeBase() {
       >
         <div className="upload-inner">
           <div className="upload-icon">📤</div>
-          <p>拖拽 PDF / Markdown 文件到此处入库</p>
+          <p>拖拽 PDF / Markdown / TXT 文件到此处入库</p>
           <label className="upload-btn">
             选择文件
             <input
               type="file"
-              accept=".pdf,.md,.markdown"
+              accept=".pdf,.md,.markdown,.txt"
               style={{ display: "none" }}
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -193,8 +199,31 @@ export default function KnowledgeBase() {
               disabled={uploading}
             />
           </label>
-          {uploading && <p className="upload-status">⏳ 处理中（向量化可能需要 1-2 分钟）...</p>}
+          <label className="analyze-toggle">
+            <input
+              type="checkbox"
+              checked={analyzeOn}
+              onChange={(e) => setAnalyzeOn(e.target.checked)}
+            />
+            ✨ 一键分析归纳（摘要/导读/关键词 → 自动入笔记层）
+          </label>
+          {uploading && <p className="upload-status">⏳ 处理中（向量化 + 分析归纳约 1-2 分钟）...</p>}
           {uploadMsg && <p className="upload-status">{uploadMsg}</p>}
+          {analyzeResult && (
+            <div className="analyze-result">
+              <p className="analyze-title">✨ 自动归纳结果（已入笔记层，可被概览类问题检索）</p>
+              {analyzeResult.summary && <p><b>摘要：</b>{analyzeResult.summary}</p>}
+              {analyzeResult.guide && <p><b>导读：</b>{analyzeResult.guide}</p>}
+              {analyzeResult.keywords && analyzeResult.keywords.length > 0 && (
+                <p className="analyze-kws">
+                  <b>关键词：</b>
+                  {analyzeResult.keywords.map((k) => (
+                    <span key={k} className="analyze-kw">{k}</span>
+                  ))}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 "use client";
 
 // 炼金图像版块：图库墙（按书分组）→ 点击弹解读卡片（多模态 RAG 成果展示）
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type ImgMeta = {
@@ -37,6 +37,15 @@ const BOOKS: Record<string, string> = {
 const CATEGORIES = ["炼金术", "魔法实践", "占星术"];
 
 export default function AlchemyPage() {
+  // useSearchParams 需在 Suspense 内（Next 15 静态生成要求）
+  return (
+    <Suspense fallback={<p className="alchemy-empty">加载中…</p>}>
+      <AlchemyInner />
+    </Suspense>
+  );
+}
+
+function AlchemyInner() {
   const [images, setImages] = useState<ImgMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "插图" | "整页">("all");

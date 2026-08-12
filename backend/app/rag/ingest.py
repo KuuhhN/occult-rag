@@ -228,9 +228,11 @@ def ingest_directory(data_dir: str) -> int:
     return len(chunks)
 
 
-def ingest_single_file(file_path: str, source_name: str = "") -> int:
+def ingest_single_file(file_path: str, source_name: str = "", filename: str = "") -> int:
     """入库单个文件（单文件=用户补充知识，默认 type=knowledge 参与分层检索）
     ponytail: 无 type 字段的块在方案B filter 下会被 SQL 排除，故必须给默认值
+    filename 显式传入（上传场景为原文件名），否则用文件名兜底——
+    避免 tempfile 随机名写入元数据导致列表/搜索/去重失效（review 修复）
     """
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -239,7 +241,7 @@ def ingest_single_file(file_path: str, source_name: str = "") -> int:
         page_content=content,
         metadata={
             "source": source_name or os.path.basename(file_path),
-            "filename": os.path.basename(file_path),
+            "filename": filename or os.path.basename(file_path),
             "category": "",
             "type": "knowledge",
         },
