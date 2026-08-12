@@ -56,7 +56,7 @@ async def kb_documents(
     with _get_engine().connect() as conn:
         rows = conn.execute(text(
             f"""
-            SELECT cmetadata->>'filename' AS filename,
+            SELECT COALESCE(cmetadata->>'filename', cmetadata->>'source', '（未知文档）') AS filename,
                    COALESCE(cmetadata->>'type', 'unknown') AS type,
                    COALESCE(cmetadata->>'category', 'core') AS category,
                    COUNT(*) AS chunks

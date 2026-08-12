@@ -257,10 +257,10 @@ export default function KnowledgeBase() {
         </div>
 
         <div className="doc-table">
-          {docs.map((d) => (
-            <div key={d.filename} className="doc-row">
-              <div className="doc-name" title={d.filename}>
-                {d.filename.replace(/\.(md|pdf)$/, "")}
+          {docs.map((d, i) => (
+            <div key={d.filename || `row-${i}`} className="doc-row">
+              <div className="doc-name" title={d.filename || ""}>
+                {(d.filename || "未知文档").replace(/\.(md|pdf)$/, "")}
               </div>
               <span className="doc-type" style={{ background: (TYPE_COLORS[d.type] || "#888") + "33", color: TYPE_COLORS[d.type] || "#888" }}>
                 {TYPE_LABEL[d.type] || d.type}
